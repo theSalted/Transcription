@@ -58,6 +58,10 @@ import OSLog
     var hypothesisWords: [WordTiming] = []
     var hypothesisText: String = ""
     
+    // Transcription UI
+    var eagerResults: [TranscriptionResult?] = []
+    var lastAgreedSeconds: Float = 0.0
+    
     // Internal state variables
     private var firstTokenTime: TimeInterval = 0
     private var pipelineStart: TimeInterval = 0
@@ -65,9 +69,7 @@ import OSLog
     private var currentDecodingLoops: Int = 0
     private var lastBufferSize: Int = 0
     private var transcriptionTask: Task<Void, Never>? = nil
-    private var eagerResults: [TranscriptionResult?] = []
     private var prevResult: TranscriptionResult?
-    private var lastAgreedSeconds: Float = 0.0
     
     private init() {
         logger.info("Initializing WhisperProcessor")
@@ -247,7 +249,7 @@ import OSLog
             usePrefillPrompt: settings.enablePromptPrefill,
             usePrefillCache: settings.enableCachePrefill,
             skipSpecialTokens: !settings.enableSpecialCharacters,
-            withoutTimestamps: !settings.enableTimestamps,
+            withoutTimestamps: false,
             wordTimestamps: true,
             firstTokenLogProbThreshold: -1.5
         )

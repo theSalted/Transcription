@@ -13,7 +13,7 @@ struct WhisperSettings {
     @AppStorage("selectedModel") var selectedModel: String = WhisperKit.recommendedModels().default
     @AppStorage("repoName") var repoName: String = "argmaxinc/whisperkit-coreml"
     @AppStorage("selectedLanguage") var selectedLanguage: String = "english"
-    @AppStorage("enableTimestamps") var enableTimestamps: Bool = true
+//    @AppStorage("enableTimestamps") var enableTimestamps: Bool = true
     @AppStorage("enablePromptPrefill") var enablePromptPrefill: Bool = true
     @AppStorage("enableCachePrefill") var enableCachePrefill: Bool = true
     @AppStorage("enableSpecialCharacters") var enableSpecialCharacters: Bool = false
