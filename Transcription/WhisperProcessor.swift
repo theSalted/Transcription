@@ -17,13 +17,15 @@ import AppKit
 #endif
 import AVFoundation
 import CoreML
+import Observation
 
 /// A processor for handling Whisper-related tasks, including model loading, recording, and transcription.
-final class WhisperProcessor {
+@Observable final class WhisperProcessor {
     static let shared = WhisperProcessor()
     
     private(set) var whisperKit: WhisperKit?
     private(set) var modelState: ModelState = .unloaded
+    private(set) var settings: WhisperSettings = WhisperSettings.shared
     private(set) var localModels: [String] = []
     private(set) var localModelPath: String = ""
     private(set) var availableModels: [String] = []
@@ -55,25 +57,6 @@ final class WhisperProcessor {
     var hypothesisWords: [WordTiming] = []
     var hypothesisText: String = ""
     
-    @AppStorage("selectedModel") private var selectedModel: String = WhisperKit.recommendedModels().default
-    @AppStorage("repoName") private var repoName: String = "argmaxinc/whisperkit-coreml"
-    @AppStorage("selectedLanguage") private var selectedLanguage: String = "english"
-    @AppStorage("enableTimestamps") private var enableTimestamps: Bool = true
-    @AppStorage("enablePromptPrefill") private var enablePromptPrefill: Bool = true
-    @AppStorage("enableCachePrefill") private var enableCachePrefill: Bool = true
-    @AppStorage("enableSpecialCharacters") private var enableSpecialCharacters: Bool = false
-    @AppStorage("enableEagerDecoding") private var enableEagerDecoding: Bool = false
-    @AppStorage("temperatureStart") private var temperatureStart: Double = 0
-    @AppStorage("fallbackCount") private var fallbackCount: Double = 5
-    @AppStorage("compressionCheckWindow") private var compressionCheckWindow: Double = 60
-    @AppStorage("sampleLength") private var sampleLength: Double = 224
-    @AppStorage("silenceThreshold") private var silenceThreshold: Double = 0.3
-    @AppStorage("useVAD") private var useVAD: Bool = true
-    @AppStorage("tokenConfirmationsNeeded") private var tokenConfirmationsNeeded: Double = 2
-    @AppStorage("chunkingStrategy") private var chunkingStrategy: ChunkingStrategy = .none
-    @AppStorage("encoderComputeUnits") private var encoderComputeUnits: MLComputeUnits = .cpuAndNeuralEngine
-    @AppStorage("decoderComputeUnits") private var decoderComputeUnits: MLComputeUnits = .cpuAndNeuralEngine
-    
     // Internal state variables
     private var firstTokenTime: TimeInterval = 0
     private var pipelineStart: TimeInterval = 0
@@ -91,7 +74,7 @@ final class WhisperProcessor {
     
     /// Fetch available models from the local storage and remote repository.
     func fetchModels() {
-        availableModels = [selectedModel]
+        availableModels = [settings.selectedModel]
         
         if let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let modelPath = documents.appendingPathComponent("huggingface/models/argmaxinc/whisperkit-coreml").path
@@ -117,7 +100,7 @@ final class WhisperProcessor {
         }
         
         Task {
-            let remoteModels = try await WhisperKit.fetchAvailableModels(from: repoName)
+            let remoteModels = try await WhisperKit.fetchAvailableModels(from: settings.repoName)
             for model in remoteModels {
                 if !availableModels.contains(model) {
                     availableModels.append(model)
@@ -145,7 +128,7 @@ final class WhisperProcessor {
             if localModels.contains(model) && !redownload {
                 folder = URL(fileURLWithPath: localModelPath).appendingPathComponent(model)
             } else {
-                folder = try await WhisperKit.download(variant: model, from: repoName, progressCallback: { progress in
+                folder = try await WhisperKit.download(variant: model, from: settings.repoName, progressCallback: { progress in
                     DispatchQueue.main.async {
                         self.loadingProgressValue = Float(progress.fractionCompleted) * self.specializationProgressRatio
                         self.modelState = .downloading
@@ -206,7 +189,7 @@ final class WhisperProcessor {
     
     /// Get compute options based on user settings.
     private func getComputeOptions() -> ModelComputeOptions {
-        return ModelComputeOptions(audioEncoderCompute: encoderComputeUnits, textDecoderCompute: decoderComputeUnits)
+        return ModelComputeOptions(audioEncoderCompute: settings.encoderComputeUnits, textDecoderCompute: settings.decoderComputeUnits)
     }
     
     /// Update the progress bar with a target progress and maximum time.
@@ -244,24 +227,24 @@ final class WhisperProcessor {
         guard let whisperKit = whisperKit else { return nil }
         
         guard whisperKit.textDecoder.supportsWordTimestamps else {
-            confirmedText = "Eager mode requires word timestamps, which are not supported by the current model: \(selectedModel)."
+            confirmedText = "Eager mode requires word timestamps, which are not supported by the current model: \(settings.selectedModel)."
             return nil
         }
         
-        let languageCode = Constants.languages[selectedLanguage, default: Constants.defaultLanguageCode]
+        let languageCode = Constants.languages[settings.selectedLanguage, default: Constants.defaultLanguageCode]
         let task: DecodingTask = .transcribe
         
         let options = DecodingOptions(
             verbose: true,
             task: task,
             language: languageCode,
-            temperature: Float(temperatureStart),
-            temperatureFallbackCount: Int(fallbackCount),
-            sampleLength: Int(sampleLength),
-            usePrefillPrompt: enablePromptPrefill,
-            usePrefillCache: enableCachePrefill,
-            skipSpecialTokens: !enableSpecialCharacters,
-            withoutTimestamps: !enableTimestamps,
+            temperature: Float(settings.temperatureStart),
+            temperatureFallbackCount: Int(settings.fallbackCount),
+            sampleLength: Int(settings.sampleLength),
+            usePrefillPrompt: settings.enablePromptPrefill,
+            usePrefillCache: settings.enableCachePrefill,
+            skipSpecialTokens: !settings.enableSpecialCharacters,
+            withoutTimestamps: !settings.enableTimestamps,
             wordTimestamps: true,
             firstTokenLogProbThreshold: -1.5
         )
@@ -280,7 +263,7 @@ final class WhisperProcessor {
                 self.currentDecodingLoops += 1
             }
             let currentTokens = progress.tokens
-            let checkWindow = Int(self.compressionCheckWindow)
+            let checkWindow = Int(self.settings.compressionCheckWindow)
             if currentTokens.count > checkWindow {
                 let checkTokens: [Int] = currentTokens.suffix(checkWindow)
                 let compressionRatio = compressionRatio(of: checkTokens)
@@ -316,12 +299,12 @@ final class WhisperProcessor {
                         Logging.info("[EagerMode] Next \"\((self.hypothesisWords.map { $0.word }).joined())\"")
                         Logging.info("[EagerMode] Found common prefix \"\((commonPrefix.map { $0.word }).joined())\"")
                         
-                        if commonPrefix.count >= Int(self.tokenConfirmationsNeeded) {
-                            self.lastAgreedWords = commonPrefix.suffix(Int(self.tokenConfirmationsNeeded))
+                        if commonPrefix.count >= Int(self.settings.tokenConfirmationsNeeded) {
+                            self.lastAgreedWords = commonPrefix.suffix(Int(self.settings.tokenConfirmationsNeeded))
                             self.lastAgreedSeconds = self.lastAgreedWords.first!.start
                             Logging.info("[EagerMode] Found new last agreed word \"\(self.lastAgreedWords.first!.word)\" at \(self.lastAgreedSeconds) seconds")
                             
-                            self.confirmedWords.append(contentsOf: commonPrefix.prefix(commonPrefix.count - Int(self.tokenConfirmationsNeeded)))
+                            self.confirmedWords.append(contentsOf: commonPrefix.prefix(commonPrefix.count - Int(self.settings.tokenConfirmationsNeeded)))
                             let currentWords = self.confirmedWords.map { $0.word }.joined()
                             Logging.info("[EagerMode] Current:  \(self.lastAgreedSeconds) -> \(Double(samples.count) / 16000.0) \(currentWords)")
                         } else {
@@ -484,11 +467,11 @@ final class WhisperProcessor {
             return
         }
         
-        if useVAD {
+        if settings.useVAD {
             let voiceDetected = AudioProcessor.isVoiceDetected(
                 in: whisperKit.audioProcessor.relativeEnergy,
                 nextBufferInSeconds: nextBufferSeconds,
-                silenceThreshold: Float(silenceThreshold)
+                silenceThreshold: Float(settings.silenceThreshold)
             )
             guard voiceDetected else {
                 await MainActor.run {

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8E5197F92C063E0700D0F2AD /* WhisperProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */; };
 		8E5197FC2C063E4000D0F2AD /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8E5197FB2C063E4000D0F2AD /* WhisperKit */; };
+		8E6F26F02C0641CD00BDDE41 /* WhisperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6F26EF2C0641CD00BDDE41 /* WhisperSettings.swift */; };
 		8E936D0B2C063D630017BCD8 /* TranscriptionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */; };
 		8E936D0D2C063D630017BCD8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E936D0C2C063D630017BCD8 /* ContentView.swift */; };
 		8E936D0F2C063D640017BCD8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8E936D0E2C063D640017BCD8 /* Assets.xcassets */; };
@@ -17,6 +18,7 @@
 
 /* Begin PBXFileReference section */
 		8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperProcessor.swift; sourceTree = "<group>"; };
+		8E6F26EF2C0641CD00BDDE41 /* WhisperSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperSettings.swift; sourceTree = "<group>"; };
 		8E936D072C063D630017BCD8 /* Transcription.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Transcription.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionApp.swift; sourceTree = "<group>"; };
 		8E936D0C2C063D630017BCD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 			children = (
 				8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */,
 				8E936D0C2C063D630017BCD8 /* ContentView.swift */,
+				8E6F26EF2C0641CD00BDDE41 /* WhisperSettings.swift */,
 				8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */,
 				8E936D0E2C063D640017BCD8 /* Assets.xcassets */,
 				8E936D102C063D640017BCD8 /* Preview Content */,
@@ -151,6 +154,7 @@
 				8E5197F92C063E0700D0F2AD /* WhisperProcessor.swift in Sources */,
 				8E936D0D2C063D630017BCD8 /* ContentView.swift in Sources */,
 				8E936D0B2C063D630017BCD8 /* TranscriptionApp.swift in Sources */,
+				8E6F26F02C0641CD00BDDE41 /* WhisperSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
