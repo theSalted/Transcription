@@ -10,8 +10,6 @@ import SwiftUI
 import CoreML
 
 struct WhisperSettings {
-    static let shared = WhisperSettings()
-    
     @AppStorage("selectedModel") var selectedModel: String = WhisperKit.recommendedModels().default
     @AppStorage("repoName") var repoName: String = "argmaxinc/whisperkit-coreml"
     @AppStorage("selectedLanguage") var selectedLanguage: String = "english"

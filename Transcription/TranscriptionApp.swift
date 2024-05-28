@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct TranscriptionApp: App {
+    static public let bundleId = "app.yuhao.Transcription"
     var body: some Scene {
         WindowGroup {
             ContentView()

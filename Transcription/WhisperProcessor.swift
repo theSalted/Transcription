@@ -18,6 +18,7 @@ import AppKit
 import AVFoundation
 import CoreML
 import Observation
+import OSLog
 
 /// A processor for handling Whisper-related tasks, including model loading, recording, and transcription.
 @Observable final class WhisperProcessor {
@@ -25,7 +26,7 @@ import Observation
     
     private(set) var whisperKit: WhisperKit?
     private(set) var modelState: ModelState = .unloaded
-    private(set) var settings: WhisperSettings = WhisperSettings.shared
+    private(set) var settings: WhisperSettings = WhisperSettings()
     private(set) var localModels: [String] = []
     private(set) var localModelPath: String = ""
     private(set) var availableModels: [String] = []
@@ -69,7 +70,9 @@ import Observation
     private var lastAgreedSeconds: Float = 0.0
     
     private init() {
+        logger.info("Initializing WhisperProcessor")
         fetchModels()
+        loadModel(settings.selectedModel)
     }
     
     /// Fetch available models from the local storage and remote repository.
@@ -223,7 +226,7 @@ import Observation
     }
     
     /// Transcribe audio samples in eager mode.
-    func transcribeEagerMode(_ samples: [Float]) async throws -> TranscriptionResult? {
+    private func transcribeEagerMode(_ samples: [Float]) async throws -> TranscriptionResult? {
         guard let whisperKit = whisperKit else { return nil }
         
         guard whisperKit.textDecoder.supportsWordTimestamps else {
@@ -278,7 +281,7 @@ import Observation
             return nil
         }
         
-        Logging.info("[EagerMode] \(lastAgreedSeconds)-\(Double(samples.count) / 16000.0) seconds")
+        logger.info("[EagerMode] \(self.lastAgreedSeconds)-\(Double(samples.count) / 16000.0) seconds")
         
         let streamingAudio = samples
         var streamOptions = options
@@ -295,20 +298,20 @@ import Observation
                     if let prevResult = self.prevResult {
                         self.prevWords = prevResult.allWords.filter { $0.start >= self.lastAgreedSeconds }
                         let commonPrefix = findLongestCommonPrefix(self.prevWords, self.hypothesisWords)
-                        Logging.info("[EagerMode] Prev \"\((self.prevWords.map { $0.word }).joined())\"")
-                        Logging.info("[EagerMode] Next \"\((self.hypothesisWords.map { $0.word }).joined())\"")
-                        Logging.info("[EagerMode] Found common prefix \"\((commonPrefix.map { $0.word }).joined())\"")
+                        logger.info("[EagerMode] Prev \"\((self.prevWords.map { $0.word }).joined())\"")
+                        logger.info("[EagerMode] Next \"\((self.hypothesisWords.map { $0.word }).joined())\"")
+                        logger.info("[EagerMode] Found common prefix \"\((commonPrefix.map { $0.word }).joined())\"")
                         
                         if commonPrefix.count >= Int(self.settings.tokenConfirmationsNeeded) {
                             self.lastAgreedWords = commonPrefix.suffix(Int(self.settings.tokenConfirmationsNeeded))
                             self.lastAgreedSeconds = self.lastAgreedWords.first!.start
-                            Logging.info("[EagerMode] Found new last agreed word \"\(self.lastAgreedWords.first!.word)\" at \(self.lastAgreedSeconds) seconds")
+                            logger.info("[EagerMode] Found new last agreed word \"\(self.lastAgreedWords.first!.word)\" at \(self.lastAgreedSeconds) seconds")
                             
                             self.confirmedWords.append(contentsOf: commonPrefix.prefix(commonPrefix.count - Int(self.settings.tokenConfirmationsNeeded)))
                             let currentWords = self.confirmedWords.map { $0.word }.joined()
-                            Logging.info("[EagerMode] Current:  \(self.lastAgreedSeconds) -> \(Double(samples.count) / 16000.0) \(currentWords)")
+                            logger.info("[EagerMode] Current:  \(self.lastAgreedSeconds) -> \(Double(samples.count) / 16000.0) \(currentWords)")
                         } else {
-                            Logging.info("[EagerMode] Using same last agreed time \(self.lastAgreedSeconds)")
+                            logger.info("[EagerMode] Using same last agreed time \(self.lastAgreedSeconds)")
                             skipAppend = true
                         }
                     }
@@ -320,7 +323,7 @@ import Observation
                 }
             }
         } catch {
-            Logging.error("[EagerMode] Error: \(error)")
+            logger.error("[EagerMode] Error: \(error)")
         }
         
         await MainActor.run {
@@ -391,7 +394,7 @@ import Observation
         if let audioProcessor = whisperKit?.audioProcessor {
             Task(priority: .userInitiated) {
                 guard await AudioProcessor.requestRecordPermission() else {
-                    print("Microphone access was not granted.")
+                    logger.info("Microphone access was not granted.")
                     return
                 }
                 
@@ -422,7 +425,7 @@ import Observation
                 do {
                     try await transcribeCurrentBuffer()
                 } catch {
-                    print("Error: \(error.localizedDescription)")
+                    logger.error("Error: \(error.localizedDescription)")
                 }
             }
         }
@@ -435,7 +438,7 @@ import Observation
                 do {
                     try await transcribeCurrentBuffer()
                 } catch {
-                    print("Error: \(error.localizedDescription)")
+                    logger.error("Error: \(error.localizedDescription)")
                     break
                 }
             }
@@ -522,3 +525,6 @@ import Observation
         }
     }
 }
+
+fileprivate let logger = Logger(subsystem: TranscriptionApp.bundleId, category: "WhisperProcessor")
+
