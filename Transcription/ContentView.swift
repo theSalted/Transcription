@@ -71,7 +71,7 @@ struct ContentView: View {
         .frame(maxWidth: .infinity)
         .defaultScrollAnchor(.bottom)
         .textSelection(.enabled)
-        .padding()
+        .contentMargins(15, for: .scrollContent)
     }
     
     var visualizer: some View {
