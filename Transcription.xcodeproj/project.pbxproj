@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8E5197F92C063E0700D0F2AD /* WhisperProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */; };
+		8E5197FC2C063E4000D0F2AD /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8E5197FB2C063E4000D0F2AD /* WhisperKit */; };
 		8E936D0B2C063D630017BCD8 /* TranscriptionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */; };
 		8E936D0D2C063D630017BCD8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E936D0C2C063D630017BCD8 /* ContentView.swift */; };
 		8E936D0F2C063D640017BCD8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8E936D0E2C063D640017BCD8 /* Assets.xcassets */; };
@@ -14,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperProcessor.swift; sourceTree = "<group>"; };
 		8E936D072C063D630017BCD8 /* Transcription.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Transcription.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionApp.swift; sourceTree = "<group>"; };
 		8E936D0C2C063D630017BCD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -26,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E5197FC2C063E4000D0F2AD /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +57,7 @@
 			children = (
 				8E936D0A2C063D630017BCD8 /* TranscriptionApp.swift */,
 				8E936D0C2C063D630017BCD8 /* ContentView.swift */,
+				8E5197F82C063E0700D0F2AD /* WhisperProcessor.swift */,
 				8E936D0E2C063D640017BCD8 /* Assets.xcassets */,
 				8E936D102C063D640017BCD8 /* Preview Content */,
 			);
@@ -83,6 +88,9 @@
 			dependencies = (
 			);
 			name = Transcription;
+			packageProductDependencies = (
+				8E5197FB2C063E4000D0F2AD /* WhisperKit */,
+			);
 			productName = Transcription;
 			productReference = 8E936D072C063D630017BCD8 /* Transcription.app */;
 			productType = "com.apple.product-type.application";
@@ -111,6 +119,9 @@
 				Base,
 			);
 			mainGroup = 8E936CFE2C063D630017BCD8;
+			packageReferences = (
+				8E5197FA2C063E4000D0F2AD /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
 			productRefGroup = 8E936D082C063D630017BCD8 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -137,6 +148,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E5197F92C063E0700D0F2AD /* WhisperProcessor.swift in Sources */,
 				8E936D0D2C063D630017BCD8 /* ContentView.swift in Sources */,
 				8E936D0B2C063D630017BCD8 /* TranscriptionApp.swift in Sources */,
 			);
@@ -344,6 +356,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8E5197FA2C063E4000D0F2AD /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8E5197FB2C063E4000D0F2AD /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8E5197FA2C063E4000D0F2AD /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8E936CFF2C063D630017BCD8 /* Project object */;
 }
